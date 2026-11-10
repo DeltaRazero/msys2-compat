@@ -234,6 +234,10 @@ shell_arguments=()
 # This must be passed as last argument.
 [[ ! -z "$user_command" ]] && shell_arguments+=("-c" "$user_command")
 
+# If no login or interactive shell is needed, we can call the more lightweight
+# sh.exe binary instead.
+(( login_shell || interactive_shell )) || SHELL_PATH=`cygpath -w -- "/usr/bin/sh"`
+
 if (( preserve_env ));
   then ${sudo_command[@]} "$SHELL_PATH" "${shell_arguments[@]}"
   else ${sudo_command[@]} cmd //s //c set CHERE_INVOKING=1\&\&set MSYS2_PATH_TYPE=$MSYS2_PATH_TYPE\&\&set MSYSTEM=$MSYSTEM\&\&set MSYS=$MSYS\&\& "$SHELL_PATH" "${shell_arguments[@]}"

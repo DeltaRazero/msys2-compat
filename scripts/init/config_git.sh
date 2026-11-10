@@ -26,10 +26,12 @@ info() {
 }
 
 # Enable Windows' native SSH agent.
-sudo powershell -Command "Get-Service -Name ssh-agent | Set-Service -StartupType Automatic"
-sudo powershell -Command "Start-Service ssh-agent"
+info "enabling Windows SSH agent"
+powershell -Command "Get-Service -Name ssh-agent | Set-Service -StartupType Automatic"
+powershell -Command "Start-Service ssh-agent"
 
 # Configure MSYS2's git to use Windows' native OpenSSH.
+info "configuring git to use Windows' OpenSSH"
 git config --global core.sshCommand "C:/Windows/System32/OpenSSH/ssh.exe"
 
 # Create SSH directory in the Windows user profile home. This needs to be the
@@ -43,6 +45,7 @@ MSYS2_SSH_DIR="$HOME/.ssh"
 if [[ ! -h "$MSYS2_SSH_DIR" ]]; then
   # Move over contents from the user MSYS2 home directory.
   if [[ -d "$MSYS2_SSH_DIR" ]]; then
+    info "moving .ssh contents"
     for item in "$MSYS2_SSH_DIR"/*; do
       # Handle empty directory safely.
       [[ -e "$item" ]] || continue

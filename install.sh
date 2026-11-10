@@ -19,7 +19,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 VERSION='1.0.0'
-PROGRAM="msys2-compat/${0##*/}"
+PROGRAM="msys2-compat/install.sh"
 
 info() {
   printf '%s: %s\n' "$PROGRAM" "$*" >&1
@@ -44,6 +44,9 @@ if ! net session >/dev/null 2>&1; then
     # Configure git hooks so that pulling new updates triggers this script for
     # updating components.
     git config core.hooksPath .githooks
+  else
+    cd /opt/msys2-compat || die "could not cd to /opt/msys2-compat"
+    git pull
   fi
 
   info "elevated privileges needed to continue setting up, expect a prompt"
@@ -53,7 +56,7 @@ if ! net session >/dev/null 2>&1; then
     die "could not install msys2-compat.\n  If no sudo provider is available, see https://github.com/DeltaRazero/msys2-compat/blob/main/README#prerequisites"
   fi
 
-  info "installation successful"
+  info "installation successful, reload your SHELL for the effects to apply"
   exit 0
 fi
 
@@ -62,21 +65,17 @@ fi
 # Symlink files or symlinks recursively in /sym, where /sym is equivalent to
 # the root of MSYS2.
 SYM_DIR="/opt/msys2-compat/sym"
-if [ -d "$SYM_DIR" ]; then
-  find "$SYM_DIR" -mindepth 1 | while IFS= read -r src; do
-    dst="/${src#$SYM_DIR/}"
-    mkdir -p "$(dirname "$dst")"
-    MSYS="winsymlinks:nativestrict" ln -sfn "$src" "$dst"
-  done
-fi
+/usr/bin/find "$SYM_DIR" -type f,l 2>/dev/null | while IFS= read -r src; do
+  dst="/${src#$SYM_DIR/}"
+  mkdir -p "$(dirname "$dst")"
+  MSYS="winsymlinks:nativestrict" ln -sfn "$src" "$dst"
+done
 
 # Execute all init scripts. Uses a new shell so that the path variables are
 # correctly set.
 INIT_SCRIPTS_DIR="/opt/msys2-compat/scripts/init"
 if [ -d "$INIT_SCRIPTS_DIR" ]; then
-  for script in "$INIT_SCRIPTS_DIR"/*.sh; do
-    if [ -f "$script" ]; then
-      bash "$script"
-    fi
+  for script_fp in "$INIT_SCRIPTS_DIR"/*.sh; do
+    [ -f "$script_fp" ] && /usr/bin/bash "$script_fp"
   done
 fi

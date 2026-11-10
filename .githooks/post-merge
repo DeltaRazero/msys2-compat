@@ -1,4 +1,4 @@
-#!/usr/bin/bash
-echo "Running post-pull upgrade task..."
+#!/usr/bin/sh
+echo "Running post-merge upgrade tasks..."
 
 /opt/msys2-compat/install.sh

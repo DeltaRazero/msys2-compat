@@ -43,7 +43,7 @@ if ! net session >/dev/null 2>&1; then
     cd ./msys2-compat || die "could not cd to /opt/msys2-compat"
     # Configure git hooks so that pulling new updates triggers this script for
     # updating components.
-    git config core.hooksPath .githooks
+    git config --local core.hooksPath .githooks/
   else
     cd /opt/msys2-compat || die "could not cd to /opt/msys2-compat"
     git pull

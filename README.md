@@ -17,11 +17,11 @@ Make sure you have the following ready before installing:
 Run the command below to install the repository to `<MSYS2 root>/opt/msys2-compat` and execute the setup and registration scripts:
 
 ```shell
-/usr/bin/bash -c "$(curl -fsSL [https://raw.githubusercontent.com/DeltaRazero/msys2-compat/HEAD/install.sh](https://raw.githubusercontent.com/DeltaRazero/msys2-compat/HEAD/install.sh))"
+/usr/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/DeltaRazero/msys2-compat/HEAD/install.sh)"
 ```
 
 To update the repository and trigger the automatic post-merge hook, simply pull the latest changes:
 
 ```shell
-cd /opt/msys2-compat && git pull
+git -C /opt/msys2-compat pull
 ```

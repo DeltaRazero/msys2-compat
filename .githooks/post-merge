@@ -1,0 +1,4 @@
+#!/usr/bin/bash
+echo "Running post-pull upgrade task..."
+
+/opt/msys2-compat/install.sh

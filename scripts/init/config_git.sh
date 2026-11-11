@@ -31,8 +31,10 @@ powershell -Command "Get-Service -Name ssh-agent | Set-Service -StartupType Auto
 powershell -Command "Start-Service ssh-agent"
 
 # Configure MSYS2's git to use Windows' native OpenSSH.
-info "configuring git to use Windows' OpenSSH"
-git config --global core.sshCommand "C:/Windows/System32/OpenSSH/ssh.exe"
+if ! (git config list --global | grep -q "core.sshcommand=C:/Windows/System32/OpenSSH/ssh.exe"); then
+  info "configuring git to use Windows' OpenSSH"
+  git config --global core.sshCommand "C:/Windows/System32/OpenSSH/ssh.exe"
+fi
 
 # Create SSH directory in the Windows user profile home. This needs to be the
 # storage location to prevent ownership errors when natively calling git from
@@ -61,7 +63,7 @@ if [[ ! -h "$MSYS2_SSH_DIR" ]]; then
       fi
 
       info "moving $item -> $dst"
-      mv "$item" "$dest"
+      mv "$item" "$dst"
     done
 
     # Remove the old MSYS2 SSH directory.

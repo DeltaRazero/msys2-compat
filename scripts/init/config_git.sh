@@ -36,6 +36,12 @@ if ! (git config list --global | grep -q "core.sshcommand=C:/Windows/System32/Op
   git config --global core.sshCommand "C:/Windows/System32/OpenSSH/ssh.exe"
 fi
 
+# Configure MSYS2's git to enable symlink support on checkout.
+if ! (git config list --global | grep -q "core.symlinks=true"); then
+  info "configuring git to enable symlink support on checkout"
+  git config --global core.symlinks true
+fi
+
 # Create SSH directory in the Windows user profile home. This needs to be the
 # storage location to prevent ownership errors when natively calling git from
 # Windows shells (CMD or PowerShell).

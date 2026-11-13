@@ -34,12 +34,32 @@ die() {
   exit 1
 }
 
+# Checks if the current user can make symlinks without elevated privileges.
+test_symlink_permissions() {
+  local test_target_fp=`cygpath -w -- "/msys2.exe"`
+  local test_symlink_fp=`cygpath -w -- "$HOME/test_symlink"`
+  local output=`cmd.exe //c mklink "$test_symlink_fp" "$test_target_fp" 2>&1`
+  # Check if the file exists to check whether it was successful.
+  if [[ -h "$test_symlink_fp" ]]; then
+    rm -f "$test_symlink_fp"
+    return
+  fi
+  [[ -f "$test_symlink_fp" ]] && rm -f "$test_symlink_fp"
+  die "Could not install msys2-compat.
+
+  The current user requires elevated privileges to make symlinks.
+  To change this privilege behaviour, see the conditional step in the README for
+  'Enable Developer Mode' https://github.com/DeltaRazero/msys2-compat#prerequisites
+"
+}
+
 # Check whether the current session is not running with elevated privileges.
 if ! net session >/dev/null 2>&1; then
   # Clone the msys2-compat repository if it does not exist yet.
   if [ ! -d "/opt/msys2-compat" ]; then
+    test_symlink_permissions
     cd /opt || die "could not cd to /opt"
-    git clone https://github.com/DeltaRazero/msys2-compat
+    MSYS="winsymlinks:nativestrict" git clone -c core.symlinks=true https://github.com/DeltaRazero/msys2-compat
     cd ./msys2-compat || die "could not cd to /opt/msys2-compat"
     # Configure git hooks so that pulling new updates triggers this script for
     # updating components.
@@ -53,10 +73,17 @@ if ! net session >/dev/null 2>&1; then
   sleep 2
 
   if ! /opt/msys2-compat/bin/sudo /opt/msys2-compat/install.sh; then
-    die "could not install msys2-compat.\n  If no sudo provider is available, see https://github.com/DeltaRazero/msys2-compat/blob/main/README#prerequisites"
+    die "could not install msys2-compat
+
+  A sudo provider may not be available.
+  For more information, see https://github.com/DeltaRazero/msys2-compat#prerequisites
+"
   fi
 
-  info "installation successful, reload your SHELL for the effects to apply"
+  info "successfully install msys2-compat
+
+Installation successful, reload your SHELL for the effects to apply.
+"
   exit 0
 fi
 

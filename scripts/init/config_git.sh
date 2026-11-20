@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/bash -e
 
 # Set up git to work in both MSYS2 shells and when called natively from Windows
 # shells (CMD or PowerShell).
@@ -23,6 +23,24 @@ PROGRAM="msys2-compat/${0##*/}"
 
 info() {
   printf '%s: %s\n' "$PROGRAM" "$*" >&1
+}
+
+migrate_file() {
+  local src="$1"
+  local dst="$2"
+
+  local name=$(basename "$src")
+  local dst_dir=$(dirname "$dst")
+
+  # Check if the file or directory already exists at the destination folder.
+  if [[ -e "$dst" ]]; then
+    dst="${dst}_msys2.bak"
+    info "conflict: '$name' already exists at '$dst_dir'"
+    info "  -> renaming to '${name}_msys2.bak'. Please check and merge manually."
+  fi
+
+  info "moving $src -> $dst"
+  mv "$src" "$dst"
 }
 
 # Enable Windows' native SSH agent.
@@ -58,18 +76,7 @@ if [[ ! -h "$MSYS2_SSH_DIR" ]]; then
       # Handle empty directory safely.
       [[ -e "$item" ]] || continue
 
-      name=$(basename "$item")
-      dst="$USERPROFILE_SSH_DIR/$name"
-
-      # Check if the file or directory already exists at the destination folder.
-      if [[ -e "$dst" ]]; then
-        dst="${dst}_msys2.bak"
-        info "conflict: '$name' already exists at $USERPROFILE_SSH_DIR"
-        info "  -> renaming to '${name}_msys2.bak'. Please check and merge manually."
-      fi
-
-      info "moving $item -> $dst"
-      mv "$item" "$dst"
+      migrate_file "$item" "$USERPROFILE_SSH_DIR/$name"
     done
 
     # Remove the old MSYS2 SSH directory.
@@ -78,4 +85,15 @@ if [[ ! -h "$MSYS2_SSH_DIR" ]]; then
 
   info "creating symlink $MSYS2_SSH_DIR -> $USERPROFILE_SSH_DIR"
   ln -s "$USERPROFILE_SSH_DIR" "$MSYS2_SSH_DIR"
+fi
+
+# Migrate and create .gitconfig to the Windows user profile home and create a
+# symlink to the userprofile file in the MSYS2 home directory.
+USERPROFILE_GITCONFIG_FP="$USERPROFILE/.gitconfig"
+MSYS2_GITCONFIG_FP="$HOME/.gitconfig"
+# Don't have to move anything over if already a symlink.
+if [[ ! -h "$MSYS2_GITCONFIG_FP" ]]; then
+  migrate_file "$MSYS2_GITCONFIG_FP" "$USERPROFILE_GITCONFIG_FP"
+  info "creating symlink $MSYS2_GITCONFIG_FP -> $USERPROFILE_GITCONFIG_FP"
+  ln -s "$USERPROFILE_GITCONFIG_FP" "$MSYS2_GITCONFIG_FP"
 fi
